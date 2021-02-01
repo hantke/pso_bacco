@@ -45,14 +45,14 @@ class global_PSO():
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
         self.size = self.comm.Get_size()
-
+        self.verbose = verbose
+        
         if backup_name is not None:
             if os.path.isfile(backup_name):
                 self.load(backup_name)
                 return
             elif verbose: print('Backup file {} does not exist.'.format(backup_name))
                 
-        self.verbose = verbose
         self.ndim    = len(bounds)
         self.npoints = npoints
         self.swarm   = self.init_swarm()
