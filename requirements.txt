@@ -1,0 +1,7 @@
+numpy
+deepdish
+mpi4py
+
+--For plotting
+
+matplotlib
