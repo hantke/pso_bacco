@@ -303,7 +303,7 @@ class global_PSO():
         return _pos
 
     def run(self, f, func_argv = (), niter=100, bound_correct_method = 'reflect', reflect_param = 0.8,
-            backup_name=None, backup_frequency=10, verbose = None):
+            backup_name=None, backup_frequency=10, vectorize = False, verbose = None):
         """
         Run the PSO.
 
@@ -317,13 +317,16 @@ class global_PSO():
             backup_frequency: every backup_frequency iterations it will be produced a backup file.
             verbose (bool, optional): Old Classic Verbose. If None, it is set to the one of the main class. Defaults to None.
         """
-
+        
         _pos = self.mpi_scatter_swarm()
         _val = np.zeros(np.size(self.swarm['val']))
         if verbose is not None: self.verbose = verbose
-        for i,p in enumerate(_pos):
-            if i%self.size == self.rank:
-                _val[i] = f(p,*func_argv)
+        if vectorize:
+            _val = f(_pos,*func_argv)
+        else:
+            for i,p in enumerate(_pos):
+                if i%self.size == self.rank:
+                    _val[i] = f(p,*func_argv)
         self.comm.Reduce(_val,self.swarm['val'], self.mpi.SUM, 0)
         self.update_best_pos()
         if self.verbose and self.rank == 0: self.print_info(0, niter)
@@ -334,9 +337,12 @@ class global_PSO():
                 self.correct_bound(bound_correct_method, reflect_param = reflect_param)
             _pos = self.mpi_scatter_swarm()
             _val = np.zeros(np.size(self.swarm['val']))
-            for j in range(self.npoints):
-                p = _pos[j]
-                if j%self.size == self.rank: _val[j] = f(p,*func_argv)
+            if vectorize:
+                _val = f(_pos,*func_argv)
+            else:
+                for j in range(self.npoints):
+                    p = _pos[j]
+                    if j%self.size == self.rank: _val[j] = f(p,*func_argv)
             self.comm.Reduce(_val,self.swarm['val'], self.mpi.SUM, 0)
             self.update_best_pos()
             if self.verbose and self.rank == 0: self.print_info(i,niter)
