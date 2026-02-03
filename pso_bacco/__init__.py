@@ -3,7 +3,8 @@
 
 from .pso_bacco import *
 from .utils import *
+from .io import *
 
-__version__ = "1.0"
+__version__ = "1.1"
 
  

@@ -9,6 +9,9 @@ import numpy as np
 import copy
 import os
 from .utils import latinhypercube
+from .io import load_hdf5
+from .io import save_hdf5
+
 class global_PSO():
     def __init__(self,
                  bounds = None,
@@ -79,7 +82,6 @@ class global_PSO():
             filename (str): Name of the saving file
         """
         if self.rank != 0: return
-        import deepdish as dd
         d                        = {}
         d['swarm']               = self.swarm
         d['header']              = {}
@@ -89,7 +91,7 @@ class global_PSO():
         d['header']['max_speed'] = self.max_speed
         d['header']['params']    = self.params
         d['header']['par_names']    = self.par_names
-        dd.io.save(filename, d)
+        save_hdf5(filename, d, allow_pickle=True)
         if self.verbose: print('Saving a backup in {}.'.format(filename))
 
     def load(self, filename):
@@ -99,9 +101,8 @@ class global_PSO():
         Args:
             filename (str): Name of the loading file
         """
-        import deepdish as dd
         if self.rank == 0:
-            d = dd.io.load(filename)
+            d = load_hdf5(filename)
             if self.verbose: print('Loading a backup in {}.'.format(filename))
 
         swarm     = d['swarm'] if self.rank == 0 else None
